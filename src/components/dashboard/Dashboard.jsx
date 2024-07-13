@@ -60,6 +60,10 @@ const Dashboard = () => {
 
   const { data: userProfile, isLoading, error } = useUserProfile();
 
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
   const handleGroundClick = () => {
     if (isLoggedIn) {
       navigate("/", { state: { isLoggedIn } });
