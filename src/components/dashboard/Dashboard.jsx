@@ -39,14 +39,14 @@ const useUserProfile = () => {
     ["userProfile", user?.uid],
     async () => {
       const profileData = await fetchUserProfile(user.uid);
-      let imageUrl = ""; // Initialize imageUrl
+      let imageUrl = "";
       if (profileData.profileImage) {
         imageUrl = await fetchProfileImageUrl(profileData.profileImage);
       }
       return { ...profileData, profileImageUrl: imageUrl };
     },
     {
-      enabled: !!user, // Only run the query if the user is logged in
+      enabled: !!user,
     }
   );
 };

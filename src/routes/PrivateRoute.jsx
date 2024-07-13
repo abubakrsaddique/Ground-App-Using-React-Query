@@ -6,7 +6,7 @@ function PrivateRoute() {
   const { data: user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return user ? <Outlet /> : <Navigate to="/login" />;

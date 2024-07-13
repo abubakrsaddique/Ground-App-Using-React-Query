@@ -9,15 +9,14 @@ import PIImage from "../../../public/piimage.svg";
 
 const ProfileImage = ({ onClose }) => {
   const [userProfileImage, setUserProfileImage] = useState(null);
-  const [userProfilePreview, setUserProfilePreview] = useState(null); // State to store the preview URL
-  const [currentProfileImageUrl, setCurrentProfileImageUrl] = useState(null); // State to store current profile image URL
+  const [userProfilePreview, setUserProfilePreview] = useState(null);
+  const [currentProfileImageUrl, setCurrentProfileImageUrl] = useState(null);
   const queryClient = useQueryClient();
   const auth = getAuth();
   const db = getFirestore();
 
   const user = auth.currentUser;
 
-  // Function to fetch current profile image URL
   const fetchCurrentProfileImageUrl = async () => {
     if (!user) return;
 
@@ -36,21 +35,18 @@ const ProfileImage = ({ onClose }) => {
     }
   };
 
-  // Fetch current profile image URL on component mount
   useEffect(() => {
     fetchCurrentProfileImageUrl();
   }, []);
 
-  // Function to handle image change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setUserProfileImage(file);
-      setUserProfilePreview(URL.createObjectURL(file)); // Set preview to selected image
+      setUserProfilePreview(URL.createObjectURL(file));
     }
   };
 
-  // Function to upload image to Firebase Storage
   const uploadImage = async (file) => {
     const storage = getStorage();
     const storageRef = ref(storage, `profileImages/${user.uid}`);
@@ -58,22 +54,20 @@ const ProfileImage = ({ onClose }) => {
     return getDownloadURL(storageRef);
   };
 
-  // Function to save profile image URL to Firestore
   const saveProfileImage = async (url) => {
     const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, { profileImage: url });
   };
 
-  // React Query mutation to upload image and update profile
   const { mutate: uploadMutate, isLoading: isUploading } = useMutation(
     uploadImage,
     {
       onSuccess: async (url) => {
         await saveProfileImage(url);
-        setCurrentProfileImageUrl(url); // Update current profile image URL
-        queryClient.invalidateQueries("profileImageUrl"); // Invalidate query to fetch updated image URL
+        setCurrentProfileImageUrl(url);
+        queryClient.invalidateQueries("profileImageUrl");
         alert("Profile image updated successfully!");
-        onClose(); // Close the modal
+        onClose();
       },
       onError: (error) => {
         console.error("Error uploading image:", error);
@@ -81,10 +75,9 @@ const ProfileImage = ({ onClose }) => {
     }
   );
 
-  // Function to handle save button click
   const handleSave = () => {
     if (userProfileImage) {
-      uploadMutate(userProfileImage); // Trigger image upload mutation
+      uploadMutate(userProfileImage);
     }
   };
 

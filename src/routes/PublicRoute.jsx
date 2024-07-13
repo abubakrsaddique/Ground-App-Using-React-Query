@@ -6,7 +6,7 @@ function PublicRoute() {
   const { data: user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return user ? <Navigate to="/dashboard" /> : <Outlet />;
