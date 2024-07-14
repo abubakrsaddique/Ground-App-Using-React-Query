@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { auth, firestore } from "../../Firebase";
 import { FaSpinner } from "react-icons/fa";
 import { loadStripe } from "@stripe/stripe-js";
@@ -16,6 +16,7 @@ import StartUpImage3 from "../../../public/startup3.svg";
 const stripePromise = loadStripe("your_publishable_key_here");
 
 const StartUp = ({ user, db }) => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,44 +39,70 @@ const StartUp = ({ user, db }) => {
   const handleSignupClick = () => {
     navigate("/signup");
   };
+  const createUser = async () => {
+    try {
+      const userCredential = await auth.createUserWithEmailAndPassword(
+        email,
+        password
+      );
 
-  const createUser = async ({
-    firstName,
-    lastName,
-    email,
-    password,
-    cardNumber,
-    expiry,
-    cvc,
-  }) => {
-    const userCredential = await auth.createUserWithEmailAndPassword(
-      email,
-      password
-    );
+      const userRef = firestore
+        .collection("users")
+        .doc(userCredential.user.uid);
 
-    const userRef = firestore.collection("users").doc(userCredential.user.uid);
+      await userRef.set({
+        firstName,
+        lastName,
+        email,
+        cardNumber,
+        expiry,
+        cvc,
+      });
 
-    await userRef.set({
-      firstName,
-      lastName,
-      email,
-      cardNumber,
-      expiry,
-      cvc,
-    });
+      return userRef;
+    } catch (error) {
+      throw new Error(
+        "Failed to sign up. Please check your details and try again."
+      );
+    }
   };
 
   const { mutate: saveUserDetails, isLoading } = useMutation(createUser, {
     onSuccess: () => {
       setLoading(false);
+      console.log("Signup successful!");
+      queryClient.invalidateQueries("userProfile");
       navigate("/dashboard");
     },
     onError: (error) => {
       setLoading(false);
       console.error("Error signing up:", error);
-      setError("Failed to sign up. Please check your details and try again.");
+      setError(error.message);
     },
   });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    switch (name) {
+      case "cardNumber":
+        if (/^\d{0,16}$/.test(value)) {
+          setCardNumber(value);
+        }
+        break;
+      case "expiry":
+        if (value.length <= 5) {
+          setExpiry(value);
+        }
+        break;
+      case "cvc":
+        if (/^\d{0,3}$/.test(value)) {
+          setCvc(value);
+        }
+        break;
+      default:
+        break;
+    }
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -199,7 +226,7 @@ const StartUp = ({ user, db }) => {
                           name="cardNumber"
                           className="mb-3 rounded-3xl px-4 py-2 w-full outline-black"
                           value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
+                          onChange={handleInputChange}
                         />
                       </div>
 
@@ -211,7 +238,7 @@ const StartUp = ({ user, db }) => {
                           name="expiry"
                           className="mb-3 rounded-3xl px-4 py-2 w-full outline-black"
                           value={expiry}
-                          onChange={(e) => setExpiry(e.target.value)}
+                          onChange={handleInputChange}
                         />
                         <input
                           required
@@ -220,7 +247,7 @@ const StartUp = ({ user, db }) => {
                           name="cvc"
                           className="mb-3 rounded-3xl px-4 py-2 w-full outline-black"
                           value={cvc}
-                          onChange={(e) => setCvc(e.target.value)}
+                          onChange={handleInputChange}
                         />
                       </div>
                       {error && (
@@ -240,12 +267,7 @@ const StartUp = ({ user, db }) => {
                         </a>
                       </p>
                       <div className="relative z-[100] flex h-14 cursor-pointer items-center justify-center overflow-hidden rounded-3xl bg-lightgreen font-medium text-primary w-full text-base hover:bg-brown ">
-                        <button
-                          type="submit"
-                          className=" "
-                          disabled={loading}
-                          onClick={handleSave}
-                        >
+                        <button type="submit" className=" " disabled={loading}>
                           {loading ? (
                             <FaSpinner className="animate-spin mx-auto" />
                           ) : (

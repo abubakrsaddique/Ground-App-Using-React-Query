@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import { useMutation } from "react-query";
-import { doc, setDoc } from "firebase/firestore";
+import { useQuery, useMutation, useQueryClient } from "react-query";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { firestore } from "../../Firebase";
 import Close from "../../../public/videomodalclose.svg";
@@ -21,6 +21,106 @@ const EditProfile = ({ onClose }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [kgValue, setKgValue] = useState("");
   const [lbsValue, setLbsValue] = useState("");
+  const queryClient = useQueryClient();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const { data: profileData, isLoading: profileLoading } = useQuery(
+    "userProfile",
+    async () => {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+      const userRef = doc(firestore, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        return null;
+      }
+    },
+    {
+      enabled: !!user,
+    }
+  );
+
+  const updateProfile = useMutation(
+    async (newProfileData) => {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+      const userRef = doc(firestore, "users", user.uid);
+      await setDoc(userRef, newProfileData, { merge: true });
+    },
+    {
+      onSuccess: () => {
+        setLoading(false);
+        onClose();
+        queryClient.invalidateQueries("userProfile");
+        setSuccessMessage("Profile updated successfully.");
+      },
+      onError: (error) => {
+        setLoading(false);
+        setErrorMessage("Failed to update profile. Please try again.");
+        console.error("Error updating profile:", error);
+      },
+    }
+  );
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const updatedProfile = {
+        age,
+        height: formatHeight(),
+        weight: formatWeight(),
+        selectedGoal,
+        selectedMeal,
+      };
+
+      await updateProfile.mutateAsync(updatedProfile);
+    } catch (error) {
+      setLoading(false);
+      setErrorMessage("Failed to update profile. Please try again.");
+      console.error("Error updating profile:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    if (profileData) {
+      setAge(profileData.age || "");
+      if (profileData.height) {
+        const heightStr = profileData.height;
+        if (heightStr.includes("ft")) {
+          const [feet, inches] = heightStr.split("ft");
+          setLengthUnit("ft");
+          setFeetInches({
+            feet: feet || "",
+            inches: inches.replace("inch", "") || "",
+          });
+          setHeight([feet || "", inches.replace("inch", "") || ""]);
+        } else if (heightStr.includes("cm")) {
+          setLengthUnit("cm");
+          setCmValue(heightStr.replace("cm", ""));
+          setHeight([heightStr.replace("cm", ""), null]);
+        }
+      }
+      if (profileData.weight) {
+        const weightStr = profileData.weight;
+        if (weightStr.includes("kg")) {
+          setWeightUnit("kg");
+          setKgValue(weightStr.replace("kg", ""));
+        } else if (weightStr.includes("lbs")) {
+          setWeightUnit("lbs");
+          setLbsValue(weightStr.replace("lbs", ""));
+        }
+      }
+      setSelectedGoal(profileData.selectedGoal || "");
+      setSelectedMeal(profileData.selectedMeal || "");
+    }
+  }, [profileData]);
 
   const handleLengthUnitChange = (unit) => {
     setLengthUnit(unit);
@@ -56,6 +156,7 @@ const EditProfile = ({ onClose }) => {
       setLbsValue("");
     }
   };
+
   const handleFeetInputChange = (e) => {
     const newFeet = e.target.value;
     setFeetInches({ ...feetInches, feet: newFeet });
@@ -82,6 +183,14 @@ const EditProfile = ({ onClose }) => {
     setLbsValue(event.target.value);
   };
 
+  const handleGoalChange = (goal) => {
+    setSelectedGoal(goal);
+  };
+
+  const handleMealChange = (meal) => {
+    setSelectedMeal(meal);
+  };
+
   const formatHeight = () => {
     if (lengthUnit === "ft") {
       return `${height[0]}ft${height[1]}inch`;
@@ -98,61 +207,6 @@ const EditProfile = ({ onClose }) => {
       return `${lbsValue}lbs`;
     }
     return "";
-  };
-
-  const handleGoalChange = (goal) => {
-    setSelectedGoal(goal);
-  };
-
-  const handleMealChange = (meal) => {
-    setSelectedMeal(meal);
-  };
-
-  const saveProfile = async (profileData) => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-    const userRef = doc(firestore, "users", user.uid);
-    await setDoc(userRef, profileData, { merge: true });
-  };
-
-  const { mutate: saveProfileData, isLoading } = useMutation(saveProfile, {
-    onSuccess: () => {
-      setLoading(false);
-      setSuccessMessage("Profile updated successfully.");
-      setTimeout(() => {
-        setSuccessMessage("");
-        onClose();
-      }, 2000);
-    },
-    onError: (error) => {
-      setLoading(false);
-      console.error("Error updating profile:", error);
-      setErrorMessage("Failed to update profile. Please try again.");
-    },
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage("");
-
-    try {
-      const profileData = {
-        age,
-        height: formatHeight(),
-        weight: formatWeight(),
-        selectedGoal,
-        selectedMeal,
-      };
-
-      await saveProfileData(profileData);
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      setErrorMessage("Failed to save profile. Please try again.");
-    }
   };
 
   return (

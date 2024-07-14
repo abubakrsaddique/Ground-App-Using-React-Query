@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
@@ -32,23 +32,21 @@ const fetchProfileImageUrl = async (imagePath) => {
   return getDownloadURL(imageRef);
 };
 
-const useUserProfile = () => {
-  const auth = getAuth();
-  const user = auth.currentUser;
-  return useQuery(
-    ["userProfile", user?.uid],
-    async () => {
-      const profileData = await fetchUserProfile(user.uid);
-      let imageUrl = "";
-      if (profileData.profileImage) {
-        imageUrl = await fetchProfileImageUrl(profileData.profileImage);
-      }
-      return { ...profileData, profileImageUrl: imageUrl };
-    },
-    {
-      enabled: !!user,
+const useUserProfile = (uid) => {
+  const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    queryClient.invalidateQueries("userProfile");
+  }, [uid, queryClient]);
+
+  return useQuery(["userProfile", uid], async () => {
+    const profileData = await fetchUserProfile(uid);
+    let imageUrl = "";
+    if (profileData.profileImage) {
+      imageUrl = await fetchProfileImageUrl(profileData.profileImage);
     }
-  );
+    return { ...profileData, profileImageUrl: imageUrl };
+  });
 };
 
 const Dashboard = () => {
@@ -57,12 +55,30 @@ const Dashboard = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const auth = getAuth();
+  const uid = user ? user.uid : "";
 
-  const { data: userProfile, isLoading, error } = useUserProfile();
+  const {
+    data: profileData,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useUserProfile(uid);
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
+  const {
+    data: userProfile,
+    isLoading: userProfileLoading,
+    error: userProfileError,
+  } = useQuery(["userProfile", uid], () => fetchUserProfile(uid), {
+    enabled: !!uid,
+  });
+
+  const isLoading = profileLoading || userProfileLoading;
+  const error = profileError || userProfileError;
+
+  const combinedUserProfile = {
+    ...profileData,
+    ...userProfile,
+  };
 
   const handleGroundClick = () => {
     if (isLoggedIn) {
@@ -71,6 +87,7 @@ const Dashboard = () => {
       navigate("/");
     }
   };
+
   const handleLogoutClick = () => {
     logout();
     navigate("/");
@@ -122,7 +139,7 @@ const Dashboard = () => {
                   height="96"
                   decoding="async"
                   className="h-24 w-24 rounded-full object-cover"
-                  src={userProfile.profileImageUrl || AddImage}
+                  src={userProfile?.profileImageUrl || AddImage}
                   onClick={toggleProfileImage}
                 />
               </div>
@@ -209,7 +226,7 @@ const Dashboard = () => {
                       Age
                     </p>
                     <p className="font-semibold leading-4 text-lightbrown text-base">
-                      22
+                      {userProfile?.age || "Not Provided"}
                     </p>
                   </div>
                   <div className="my-5 w-full border-t border-gray opacity-50"></div>
@@ -218,7 +235,7 @@ const Dashboard = () => {
                       Height
                     </p>
                     <p className="font-semibold leading-4 text-lightbrown text-base">
-                      5ft10inhces
+                      {userProfile?.height || "Not Provided"}
                     </p>
                   </div>
                   <div className="my-5 w-full border-t border-gray opacity-50"></div>
@@ -227,7 +244,7 @@ const Dashboard = () => {
                       Weight
                     </p>
                     <p className="font-semibold leading-4 text-lightbrown text-base">
-                      75kg
+                      {userProfile?.weight || "Not Provided"}
                     </p>
                   </div>
                   <div className="my-5 w-full border-t border-gray opacity-50"></div>
@@ -236,7 +253,7 @@ const Dashboard = () => {
                       Goals
                     </p>
                     <p className="font-semibold leading-4 text-lightbrown text-base">
-                      lose weight
+                      {userProfile?.selectedGoal || "Not Provided"}
                     </p>
                   </div>
                   <div className="my-5 w-full border-t border-gray opacity-50"></div>
@@ -245,7 +262,7 @@ const Dashboard = () => {
                       Daily Meal Amount
                     </p>
                     <p className="font-semibold leading-4 text-lightbrown text-base">
-                      3
+                      {userProfile?.selectedMeal || "Not Provided"}
                     </p>
                   </div>
                 </div>
