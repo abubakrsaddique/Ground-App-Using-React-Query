@@ -17,6 +17,7 @@ const Login = () => {
 
   const login = async ({ email, password }) => {
     await auth.signInWithEmailAndPassword(email, password);
+    navigate("/dashboard");
   };
 
   const { mutate: loginUser, isLoading } = useMutation(login, {
@@ -40,6 +41,8 @@ const Login = () => {
 
     try {
       await loginUser({ email, password });
+      setLoading(false);
+      navigate("/dashboard");
     } catch (error) {
       setError(error.message);
       setLoading(false);
