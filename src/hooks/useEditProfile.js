@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { firestore } from "../Firebase";
 import { toast } from "react-hot-toast";
 
-const useEditProfile = () => {
+const useEditProfile = (profileData) => {
   const [loading, setLoading] = useState(false);
   const [lengthUnit, setLengthUnit] = useState("cm");
   const [weightUnit, setWeightUnit] = useState("kg");
@@ -21,25 +21,6 @@ const useEditProfile = () => {
   const queryClient = useQueryClient();
   const auth = getAuth();
   const user = auth.currentUser;
-
-  const { data: profileData, isLoading: profileLoading } = useQuery(
-    "userProfile",
-    async () => {
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-      const userRef = doc(firestore, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      } else {
-        return null;
-      }
-    },
-    {
-      enabled: !!user,
-    }
-  );
 
   const updateProfile = useMutation(
     async (newProfileData) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import BackgroundVideo from "../../images/banner.mp4";
 import Close from "../../images/close.png";
 import { AuthContext } from "../../context/AuthContext";

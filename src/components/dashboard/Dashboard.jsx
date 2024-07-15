@@ -13,7 +13,13 @@ import EditButton from "../../../public/edit.svg";
 import PaymentImage from "../../../public/payment.svg";
 import useUserProfile from "../../hooks/useUserProfile";
 
-const Dashboard = () => {
+const Dashboard = (props) => {
+  const {
+    userData: userProfile,
+    isUserDataLoading: isLoading,
+    refetchUserData,
+    error,
+  } = props;
   const { logout, isLoggedIn, user } = useContext(AuthContext);
   const [isProfileImageOpen, setIsProfileImageOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -21,8 +27,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const auth = getAuth();
   const uid = user ? user.uid : "";
-
-  const { data: userProfile, isLoading, error } = useUserProfile(uid);
 
   const handleGroundClick = () => {
     if (isLoggedIn) {
@@ -86,7 +90,7 @@ const Dashboard = () => {
                   height="96"
                   decoding="async"
                   className="h-24 w-24 rounded-full object-cover"
-                  src={userProfile?.profileImageUrl || AddImage}
+                  src={userProfile?.profileImage || AddImage}
                   onClick={toggleProfileImage}
                 />
               </div>
@@ -97,7 +101,10 @@ const Dashboard = () => {
                 onClick={toggleProfileImage}
               />
               {isProfileImageOpen && (
-                <ProfileImage onClose={toggleProfileImage} />
+                <ProfileImage
+                  onClose={toggleProfileImage}
+                  userProfile={userProfile}
+                />
               )}
               <p className="text-xl font-semibold leading-7 text-brown">
                 Welcome , {userProfile?.firstName}
@@ -164,7 +171,10 @@ const Dashboard = () => {
                     onClick={toggleEditProfile}
                   />
                   {isEditProfileOpen && (
-                    <EditProfile onClose={toggleEditProfile} />
+                    <EditProfile
+                      userProfile={userProfile}
+                      onClose={toggleEditProfile}
+                    />
                   )}
                 </div>
                 <div className="mt-4 w-full rounded-3xl bg-primary p-6">

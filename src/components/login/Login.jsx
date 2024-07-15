@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { useMutation } from "react-query";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../Firebase";
 import { FaSpinner } from "react-icons/fa";
 import Image from "../../images/login.webp";
 import BackArrow from "../../../public/backarrow.svg";

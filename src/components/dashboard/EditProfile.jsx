@@ -3,7 +3,7 @@ import { FaSpinner } from "react-icons/fa";
 import Close from "../../../public/videomodalclose.svg";
 import useEditProfile from "../../hooks/useEditProfile";
 
-const EditProfile = ({ onClose }) => {
+const EditProfile = ({ userProfile, onClose }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const {
@@ -30,7 +30,7 @@ const EditProfile = ({ onClose }) => {
     handleLbsInputChange,
     handleGoalChange,
     handleMealChange,
-  } = useEditProfile();
+  } = useEditProfile(userProfile);
 
   return (
     <div className="bg-black w-screen top-0 fixed right-0 h-screen z-50 bg-opacity-50">

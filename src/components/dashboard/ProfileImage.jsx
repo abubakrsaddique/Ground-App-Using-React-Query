@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "react-query";
+import React, { useEffect } from "react";
 import { FaSpinner } from "react-icons/fa";
 import Close from "../../images/close.png";
 import PIImage from "../../../public/piimage.svg";

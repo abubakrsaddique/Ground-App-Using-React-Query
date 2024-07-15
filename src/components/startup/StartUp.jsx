@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "react-query";
-import { auth, firestore } from "../../Firebase";
+import { useQueryClient } from "react-query";
 import { FaSpinner } from "react-icons/fa";
 import { loadStripe } from "@stripe/stripe-js";
 import Image from "../../images/login.webp";

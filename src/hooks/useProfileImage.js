@@ -59,7 +59,7 @@ const useProfileImage = (onClose) => {
       onSuccess: async (url) => {
         await saveProfileImage(url);
         setCurrentProfileImageUrl(url);
-        queryClient.invalidateQueries("profileImageUrl");
+        queryClient.invalidateQueries("userProfile");
         toast.success("Profile image updated successfully!");
         setTimeout(() => {
           onClose();

@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Banner from "./components/banner/Banner";
-import Login from "./components/login/Login";
-import Signup from "./components/signup/Signup";
-import Dashboard from "./components/dashboard/Dashboard";
-import StartUp from "./components/startup/StartUp";
+import Login from "./pages/Login/Loginpage";
+import Signup from "./pages/Signup/Signuppage";
+import Dashboard from "./pages/Dashboard";
+import StartUp from "./pages/Startup/Startuppage";
 import { AuthContext } from "./context/AuthContext";
 import PublicRoute from "./routes/PublicRoute";
 import PrivateRoute from "./routes/PrivateRoute";
