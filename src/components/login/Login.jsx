@@ -7,34 +7,14 @@ import Image from "../../images/login.webp";
 import BackArrow from "../../../public/backarrow.svg";
 import Apple from "../../../public/apple.svg";
 import PlayStore from "../../../public/playstore.svg";
+import useLogin from "../../hooks/useLogin";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const { loginUser, isLoading } = useLogin();
   const navigate = useNavigate();
-
-  const login = async ({ email, password }) => {
-    if (!validateEmail(email)) {
-      throw new Error("The email address is badly formatted.");
-    }
-    await auth.signInWithEmailAndPassword(email, password);
-  };
-
-  const { mutate: loginUser, isLoading } = useMutation(login, {
-    onSuccess: () => {
-      console.log("Login successful, navigating to dashboard...");
-      navigate("/dashboard");
-    },
-    onError: (error) => {
-      setError(
-        error.message === "The email address is badly formatted."
-          ? error.message
-          : "Failed to log in. Please check your credentials and try again."
-      );
-      console.error("Login error:", error.message);
-    },
-  });
 
   const handleLogin = (e) => {
     e.preventDefault();

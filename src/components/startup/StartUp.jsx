@@ -12,13 +12,14 @@ import InstantAccess from "../../../public/instantaccess.svg";
 import StartUpImage1 from "../../../public/startup1.svg";
 import StartUpImage2 from "../../../public/startup2.svg";
 import StartUpImage3 from "../../../public/startup3.svg";
+import useStartup from "../../hooks/useStartup";
 
 const stripePromise = loadStripe("your_publishable_key_here");
 
 const StartUp = ({ user, db }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const { saveUserDetails, isLoading, error, setError } = useStartup();
   const [loading, setLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -32,54 +33,17 @@ const StartUp = ({ user, db }) => {
     navigate("/login");
   };
 
+  const handleSignupClick = () => {
+    navigate("/signup");
+  };
+
   const handleHomeClick = () => {
     navigate("/");
   };
 
-  const handleSignupClick = () => {
-    navigate("/signup");
+  const handleNavigateToDashboard = () => {
+    navigate("/dashboard");
   };
-  const createUser = async () => {
-    try {
-      const userCredential = await auth.createUserWithEmailAndPassword(
-        email,
-        password
-      );
-
-      const userRef = firestore
-        .collection("users")
-        .doc(userCredential.user.uid);
-
-      await userRef.set({
-        firstName,
-        lastName,
-        email,
-        cardNumber,
-        expiry,
-        cvc,
-      });
-
-      return userRef;
-    } catch (error) {
-      throw new Error(
-        "Failed to sign up. Please check your details and try again."
-      );
-    }
-  };
-
-  const { mutate: saveUserDetails, isLoading } = useMutation(createUser, {
-    onSuccess: () => {
-      setLoading(false);
-      console.log("Signup successful!");
-      queryClient.invalidateQueries("userProfile");
-      navigate("/dashboard");
-    },
-    onError: (error) => {
-      setLoading(false);
-      console.error("Error signing up:", error);
-      setError(error.message);
-    },
-  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -267,7 +231,12 @@ const StartUp = ({ user, db }) => {
                         </a>
                       </p>
                       <div className="relative z-[100] flex h-14 cursor-pointer items-center justify-center overflow-hidden rounded-3xl bg-lightgreen font-medium text-primary w-full text-base hover:bg-brown ">
-                        <button type="submit" className=" " disabled={loading}>
+                        <button
+                          type="submit"
+                          className=" "
+                          disabled={loading}
+                          onClick={handleNavigateToDashboard}
+                        >
                           {loading ? (
                             <FaSpinner className="animate-spin mx-auto" />
                           ) : (
