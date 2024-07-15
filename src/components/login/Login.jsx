@@ -11,42 +11,38 @@ import PlayStore from "../../../public/playstore.svg";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const login = async ({ email, password }) => {
+    if (!validateEmail(email)) {
+      throw new Error("The email address is badly formatted.");
+    }
     await auth.signInWithEmailAndPassword(email, password);
-    navigate("/dashboard");
   };
 
   const { mutate: loginUser, isLoading } = useMutation(login, {
     onSuccess: () => {
-      setLoading(false);
       navigate("/dashboard");
     },
     onError: (error) => {
-      setLoading(false);
-      console.error("Login Error:", error);
       setError(
-        "Failed to log in. Please check your credentials and try again."
+        error.message === "The email address is badly formatted."
+          ? error.message
+          : "Failed to log in. Please check your credentials and try again."
       );
     },
   });
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    loginUser({ email, password });
+  };
 
-    try {
-      await loginUser({ email, password });
-      setLoading(false);
-      navigate("/dashboard");
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
-    }
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   const handleHomeClick = () => {
@@ -56,6 +52,7 @@ const Login = () => {
   const handleSignupClick = () => {
     navigate("/signup");
   };
+
   return (
     <div className="min-h-screen w-full  bg-gray">
       <div className="flex flex-row mob:flex-col-reverse tab:flex-col-reverse">
@@ -98,9 +95,9 @@ const Login = () => {
                   Sign Up
                 </span>
               </p>
-              <button type="submit" className="mt-4" disabled={loading}>
+              <button type="submit" className="mt-4" disabled={isLoading}>
                 <div className="relative z-[100] flex h-14 cursor-pointer items-center justify-center overflow-hidden rounded-3xl font-medium text-primary w-full bg-darkbrown text-base hover:bg-lightgreen mob:w-[350px]">
-                  {loading ? (
+                  {isLoading ? (
                     <FaSpinner className="animate-spin" />
                   ) : (
                     <span className="relative z-10">Login</span>
