@@ -23,6 +23,7 @@ const Login = () => {
 
   const { mutate: loginUser, isLoading } = useMutation(login, {
     onSuccess: () => {
+      console.log("Login successful, navigating to dashboard...");
       navigate("/dashboard");
     },
     onError: (error) => {
@@ -31,6 +32,7 @@ const Login = () => {
           ? error.message
           : "Failed to log in. Please check your credentials and try again."
       );
+      console.error("Login error:", error.message);
     },
   });
 

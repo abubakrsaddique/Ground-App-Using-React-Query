@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from "react-query";
 import { getAuth } from "firebase/auth";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
+import { toast } from "react-hot-toast";
+import "react-toastify/dist/ReactToastify.css";
 import { FaSpinner } from "react-icons/fa";
 import Close from "../../images/close.png";
 import PIImage from "../../../public/piimage.svg";
@@ -66,7 +68,7 @@ const ProfileImage = ({ onClose }) => {
         await saveProfileImage(url);
         setCurrentProfileImageUrl(url);
         queryClient.invalidateQueries("profileImageUrl");
-        alert("Profile image updated successfully!");
+        toast.success("Profile image updated successfully!");
         onClose();
       },
       onError: (error) => {

@@ -5,6 +5,8 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { firestore } from "../../Firebase";
 import Close from "../../../public/videomodalclose.svg";
+import { toast } from "react-hot-toast";
+import "react-toastify/dist/ReactToastify.css";
 
 const EditProfile = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
@@ -57,11 +59,11 @@ const EditProfile = ({ onClose }) => {
         setLoading(false);
         onClose();
         queryClient.invalidateQueries("userProfile");
-        setSuccessMessage("Profile updated successfully.");
+        toast.success("Profile updated successfully.");
       },
       onError: (error) => {
         setLoading(false);
-        setErrorMessage("Failed to update profile. Please try again.");
+        toast.error("Failed to update profile. Please try again.");
         console.error("Error updating profile:", error);
       },
     }

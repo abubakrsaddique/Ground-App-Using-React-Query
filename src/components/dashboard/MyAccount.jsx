@@ -4,6 +4,8 @@ import { useQueryClient } from "react-query";
 import { getAuth, updatePassword } from "firebase/auth";
 import { FaSpinner } from "react-icons/fa";
 import Close from "../../../public/videomodalclose.svg";
+import { toast } from "react-hot-toast";
+import "react-toastify/dist/ReactToastify.css";
 
 const MyAccount = ({ onClose }) => {
   const auth = getAuth();
@@ -21,11 +23,11 @@ const MyAccount = ({ onClose }) => {
   const { mutate, isLoading, error } = useMutation(handleChangePassword, {
     onSuccess: () => {
       queryClient.invalidateQueries("user");
-      alert("Password updated successfully!");
+      toast.success("Password updated successfully!");
       setTimeout(onClose, 2000);
     },
     onError: (error) => {
-      console.error("Error updating password:", error);
+      toast.error("Error updating password:", error);
     },
   });
 
@@ -37,7 +39,7 @@ const MyAccount = ({ onClose }) => {
     const confirmPassword = formData.get("confirmPassword");
 
     if (newPassword !== confirmPassword) {
-      console.error("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 

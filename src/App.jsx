@@ -8,12 +8,14 @@ import StartUp from "./components/startup/StartUp";
 import { AuthContext } from "./context/AuthContext";
 import PublicRoute from "./routes/PublicRoute";
 import PrivateRoute from "./routes/PrivateRoute";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { loading, user } = useContext(AuthContext);
 
   return (
     <Router>
+      <Toaster position="top-center" richColors />
       <Routes>
         <Route path="/" element={<Banner />} />
 
