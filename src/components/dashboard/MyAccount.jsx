@@ -1,50 +1,10 @@
 import React from "react";
-import { useMutation } from "react-query";
-import { useQueryClient } from "react-query";
-import { getAuth, updatePassword } from "firebase/auth";
 import { FaSpinner } from "react-icons/fa";
 import Close from "../../../public/videomodalclose.svg";
-import { toast } from "react-hot-toast";
-import "react-toastify/dist/ReactToastify.css";
+import useMyAccount from "../../hooks/useMyAccount";
 
 const MyAccount = ({ onClose }) => {
-  const auth = getAuth();
-  const queryClient = useQueryClient();
-
-  const handleChangePassword = async ({ oldPassword, newPassword }) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
-    await updatePassword(user, newPassword);
-  };
-
-  const { mutate, isLoading, error } = useMutation(handleChangePassword, {
-    onSuccess: () => {
-      queryClient.invalidateQueries("user");
-      toast.success("Password updated successfully!");
-      setTimeout(onClose, 2000);
-    },
-    onError: (error) => {
-      toast.error("Error updating password:", error);
-    },
-  });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const oldPassword = formData.get("oldPassword");
-    const newPassword = formData.get("newPassword");
-    const confirmPassword = formData.get("confirmPassword");
-
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    mutate({ oldPassword, newPassword });
-  };
+  const { handleSubmit, isLoading, error } = useMyAccount(onClose);
 
   return (
     <div className="bg-black w-screen top-0 fixed right-0 h-screen z-50 bg-opacity-50">

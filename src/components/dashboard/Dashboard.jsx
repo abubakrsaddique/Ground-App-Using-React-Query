@@ -1,10 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
-import { useQuery, useQueryClient } from "react-query";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import AddImage from "../../images/addimage.webp";
 import MyAccount from "./MyAccount";
 import ProfileImage from "./ProfileImage";
@@ -14,40 +11,7 @@ import Apple from "../../../public/apple.svg";
 import PlayStore from "../../../public/playstore.svg";
 import EditButton from "../../../public/edit.svg";
 import PaymentImage from "../../../public/payment.svg";
-
-const fetchUserProfile = async (uid) => {
-  const db = getFirestore();
-  const docRef = doc(db, "users", uid);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return docSnap.data();
-  } else {
-    throw new Error("No such document!");
-  }
-};
-
-const fetchProfileImageUrl = async (imagePath) => {
-  const storage = getStorage();
-  const imageRef = ref(storage, imagePath);
-  return getDownloadURL(imageRef);
-};
-
-const useUserProfile = (uid) => {
-  const queryClient = useQueryClient();
-
-  React.useEffect(() => {
-    queryClient.invalidateQueries("userProfile");
-  }, [uid, queryClient]);
-
-  return useQuery(["userProfile", uid], async () => {
-    const profileData = await fetchUserProfile(uid);
-    let imageUrl = "";
-    if (profileData.profileImage) {
-      imageUrl = await fetchProfileImageUrl(profileData.profileImage);
-    }
-    return { ...profileData, profileImageUrl: imageUrl };
-  });
-};
+import useUserProfile from "../../hooks/useUserProfile";
 
 const Dashboard = () => {
   const { logout, isLoggedIn, user } = useContext(AuthContext);
@@ -58,27 +22,7 @@ const Dashboard = () => {
   const auth = getAuth();
   const uid = user ? user.uid : "";
 
-  const {
-    data: profileData,
-    isLoading: profileLoading,
-    error: profileError,
-  } = useUserProfile(uid);
-
-  const {
-    data: userProfile,
-    isLoading: userProfileLoading,
-    error: userProfileError,
-  } = useQuery(["userProfile", uid], () => fetchUserProfile(uid), {
-    enabled: !!uid,
-  });
-
-  const isLoading = profileLoading || userProfileLoading;
-  const error = profileError || userProfileError;
-
-  const combinedUserProfile = {
-    ...profileData,
-    ...userProfile,
-  };
+  const { data: userProfile, isLoading, error } = useUserProfile(uid);
 
   const handleGroundClick = () => {
     if (isLoggedIn) {
@@ -108,6 +52,9 @@ const Dashboard = () => {
   const handleClose = () => {
     setIsOpen(false);
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
   return (
     <div className="min-h-screen bg-gray w-full mob:no-scrollbar">
       {/* Navbar */}
